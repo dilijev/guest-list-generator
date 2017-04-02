@@ -9,12 +9,9 @@ const parser = new ArgumentParser({
     description: "Argparse description"
 });
 
-// required arguments
-parser.addArgument(['--bpt'], { required: true, help: "Brown Paper Tickets CSV File" });
-parser.addArgument(['--gs'], { required: true, help: "GoldStar CSV File" });
-parser.addArgument(['--groupon'], { required: true, help: "GoldStar CSV File" });
-
-// optional arguments
+parser.addArgument(['--bpt'], { required: false, help: "Brown Paper Tickets CSV File" });
+parser.addArgument(['--gs'], { required: false, help: "GoldStar CSV File" });
+parser.addArgument(['--groupon'], { required: false, help: "GoldStar CSV File" });
 parser.addArgument(['--bpt-season'], { required: false, help: "Brown Paper Tickets Season Passes CSV File" });
 parser.addArgument(['--extra'], { required: false, help: "Extra entries such as reserved tickets" });
 parser.addArgument(['--out'], { required: false, help: "Output File" });
@@ -23,22 +20,35 @@ const args = parser.parseArgs();
 // console.log(args);
 
 const bptFile = args['bpt'];
+const bptSeasonFile = args['bpt_season'];
 const gsFile = args['gs'];
 const grouponFile = args['groupon'];
-
-// optional arguments
-const bptSeasonFile = args['bpt_season'];
 const extraFile = args['extra'];
 const outFile = args['out'] || 'list.csv'; // default value
 
-console.log(`Reading BPT File: ${bptFile}`);
-const bptFileData = fs.readFileSync(bptFile, 'utf8');
+let bptFileData;
+if (bptFile) {
+    console.log(`Reading BPT File: ${bptFile}`);
+    bptFileData = fs.readFileSync(bptFile, 'utf8');
+} else {
+    console.log("INFO: No BPT File");
+}
 
-console.log(`Reading GoldStar File: ${gsFile}`);
-const gsFileData = fs.readFileSync(gsFile, 'utf8');
+let gsFileData;
+if (gsFile) {
+    console.log(`Reading GoldStar File: ${gsFile}`);
+    gsFileData = fs.readFileSync(gsFile, 'utf8');
+} else {
+    console.log("INFO: No GoldStar File");
+}
 
-console.log(`Reading Groupon File: ${grouponFile}`);
-const grouponFileData = fs.readFileSync(grouponFile, 'utf8');
+let grouponFileData;
+if (grouponFile) {
+    console.log(`Reading Groupon File: ${grouponFile}`);
+    grouponFileData = fs.readFileSync(grouponFile, 'utf8');
+} else {
+    console.log("INFO: No Groupon File");
+}
 
 let bptSeasonFileData;
 if (bptSeasonFile) {
@@ -65,6 +75,7 @@ class Row {
         this.qty = qty;
         this.source = source;
         this.tickets = [ticket];
+        console.log(this.toString());
     }
 
     // TODO cleanup
@@ -157,8 +168,9 @@ function isBptTicketRow(line) {
 }
 
 function isGoldStarTicketRow(line) {
-    // FIXME this regex will leave out anyone with velvet carpet, and we can find a better test anyway
-    return /^,\w+,/.test(line);
+    const fields = line.split(/,/g);
+    const val = parseInt(fields[3]);
+    return !Number.isNaN(val);
 }
 
 function isGrouponTicketRow(line) {
@@ -220,35 +232,27 @@ function readData(test, create, data, source) {
 }
 
 function readBptData(data, source = "BPT") {
-    return readData(isBptTicketRow, createBptRow, data, source);
+    return data && readData(isBptTicketRow, createBptRow, data, source);
 }
 
 function readGoldStarData(data) {
-    return readData(isGoldStarTicketRow, createGoldStarRow, data);
+    return data && readData(isGoldStarTicketRow, createGoldStarRow, data);
 }
 
 function readGrouponData(data) {
-    return readData(isGrouponTicketRow, createGrouponRow, data);
+    return data && readData(isGrouponTicketRow, createGrouponRow, data);
 }
 
 function readExtraData(data) {
-    return readData(isExtraTicketRow, createExtraRow, data);
+    return data && readData(isExtraTicketRow, createExtraRow, data);
 }
 
-const bptRows = readBptData(bptFileData);
-const gsRows = readGoldStarData(gsFileData);
-const grouponRows = readGrouponData(grouponFileData);
-
-let rows = bptRows.concat(gsRows).concat(grouponRows);
-
-if (bptSeasonFile) {
-    const bptSeasonRows = readBptData(bptSeasonFileData, "BPT Season");
-    rows = rows.concat(bptSeasonRows);
-}
-if (extraFile) {
-    const extraRows = readExtraData(extraFileData);
-    rows = rows.concat(extraRows);
-}
+const bptRows = readBptData(bptFileData) || [];
+const gsRows = readGoldStarData(gsFileData) || [];
+const grouponRows = readGrouponData(grouponFileData) || [];
+const bptSeasonRows = readBptData(bptSeasonFileData, "BPT Season") || [];
+const extraRows = readExtraData(extraFileData) || [];
+let rows = [].concat(bptRows, gsRows, grouponRows, bptSeasonRows, extraRows);
 
 function compressRows(rows) {
     rows = rows.sort((a, b) => a.last.localeCompare(b.last, 'en-US', { 'sensitivity': 'base' }));
@@ -264,6 +268,9 @@ function compressRows(rows) {
                 currentRow = row;
             }
         }
+    }
+    if (currentRow) {
+        outRows.push(currentRow);
     }
     return outRows;
 }
