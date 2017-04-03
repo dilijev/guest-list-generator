@@ -52,11 +52,11 @@ compact table that can be used to check in guests at the door.
 ## Difficult / Low Value / Probably Not Worthwhile
 * Download the sources directly from the retailers instead of manually downloading.
 
-# Acknowledgements
+# License
+
+Licensed under the MIT License.
+See [LICENSE.txt](https://github.com/dilijev/guest-list-generator/blob/master/LICENSE.txt) for details.
 
 This software was created specifically for use by the Seattle Festival Orchestra,
 but should be applicable to any similar group or merchant with a need to create guest lists from sales reports
 from multiple online retailers.
-
-Licensed under the MIT License.
-See [LICENSE.txt](https://github.com/dilijev/guest-list-generator/blob/master/LICENSE.txt) for details.
