@@ -1,30 +1,27 @@
 # Guest List Generator
 [![Licensed under the MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/dilijev/guest-list-generator/blob/master/LICENSE.txt)
 
-It is often the case that tickets for relatively small events are listed with
-multiple online ticketing retailers with the hope of reaching as wide an audience as possible.
-Since many of these retailers may not even offer a physical ticket, printed out tickets could be easily spoofed,
-and merchants will not necessarily even have the equipment needed to scan a printed or mobile ticket,
-check-in at ticketed events is usually done manually by event staff with a physical or digital list to confirm
-that a guest has indeed purchased a ticket ahead of time.
-
-These physical lists need to be created by someone in advance of the event.
-Ticket sales might stay open as late as the night before an event,
-and events may be early in the morning.
-There could be many sources of sales from many different retailers, all in a different format.
-Extracting the useful information from these lists can be time-consuming and error-prone,
-especially when in a rush before the event.
+A merchant might list events on multiple online ticketing retailers to reach the widest audience possible.
+Printed tickets could be easily spoofed, so a merchant would want to have a check-in at
+at ticketed events where staff compares a ticket or ID with a known guest list
+to confirm that a guest has indeed purchased a ticket ahead of time.
 
 For example, an orchestra which has two shows in a single weekend every 2-3 months may list tickets for sale
-on Brown Paper Tickets, Gold Star, Groupon, and other retailers.
+on Brown Paper Tickets, Gold Star, Groupon, and possibly other retailers.
 Additionally, they may offer a season pass for sale towards the beginning of the season,
 which would need to be applied to all events.
 Finally, a list of reserved or VIP tickets may be maintained separately.
 
-Assuming the merchants offer downloads of ticket sales lists
-in a reasonble format like CSV that stays consistent over time,
-creating the list of guests is fairly straightforward and mechanical,
-but because of the differences in formats,
+Creating the list of guests is fairly straightforward and mechanical,
+but because of the differences in formats, it is difficult and errors or omissions may result.
+Ticket sales might stay open as late as the night before an event,
+and events may be early in the morning.
+Different retailers will all have a different format for tables of tickets purchased.
+Additionally, the lists from each retailer may not be in a compact or easy-to-consult format,
+may contain duplicate entries instead of a quantity of tickets, etc.
+
+This program solves all these problems by simply taking in all of the source lists and producing a single,
+compact table that can be used to check in guests at the door.
 
 # Using This Software
 
@@ -57,7 +54,7 @@ but because of the differences in formats,
 
 # Acknowledgements
 
-This software was created specifically for the purposes of the Seattle Festival Orchestra
+This software was created specifically for use by the Seattle Festival Orchestra,
 but should be applicable to any similar group or merchant with a need to create guest lists from sales reports
 from multiple online retailers.
 
