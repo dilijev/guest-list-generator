@@ -17,7 +17,6 @@ parser.addArgument(['--extra'], { required: false, help: "Extra entries such as 
 parser.addArgument(['--out'], { required: false, help: "Output File" });
 
 const args = parser.parseArgs();
-// console.log(args);
 
 const bptFile = args['bpt'];
 const bptSeasonFile = args['bpt_season'];
@@ -75,13 +74,7 @@ class Row {
         this.qty = qty;
         this.source = source;
         this.tickets = [ticket];
-        console.log(this.toString());
     }
-
-    // TODO cleanup
-    // addTicket(ticket) {
-    //     this.tickets.push(ticket);
-    // }
 
     mergeRow(other) {
         if (this.last === other.last &&
@@ -133,13 +126,13 @@ class Row {
         }
 
         const prefixRange = first + ".." + last.slice(index - 1);
-        // console.log(prefixRange);
         return prefixRange;
     }
 
     getTicketsString() {
         let out = this.getPrefixRange();
         if (out === undefined) {
+            // TODO make this more useful for multiple non-numeric tickets
             if (this.tickets.length > 1) {
                 out = this.tickets[0] + ",...";
             } else {
@@ -222,7 +215,6 @@ function readData(test, create, data, source) {
     const lines = data.split(/\r?\n/g);
     const rows = [];
     for (let line of lines) {
-        // console.log(line);
         if (test(line)) {
             const row = create(line, source);
             rows.push(row);
