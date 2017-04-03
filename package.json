@@ -1,0 +1,14 @@
+{
+  "name": "guest-list-generator",
+  "version": "1.0.0",
+  "description": "Generate a Guest List from multiple ticket sales and guest list CSV files.",
+  "main": "generator.js",
+  "author": "Doug Ilijev <doug.ilijev@gmail.com>",
+  "repository": {
+    "url": "https://github.com/dilijev/guest-list-generator"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "argparse": "^1.0.9"
+  }
+}

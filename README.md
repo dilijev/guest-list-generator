@@ -24,16 +24,25 @@ Finally, a list of reserved or VIP tickets may be maintained separately.
 Assuming the merchants offer downloads of ticket sales lists
 in a reasonble format like CSV that stays consistent over time,
 creating the list of guests is fairly straightforward and mechanical,
-but because of the differences in formats, 
+but because of the differences in formats,
 
 # Using This Software
 
-
+* Get [Node.js](https://nodejs.org/).
+* `git clone https://github.com/dilijev/guest-list-generator`
+* `cd guest-list-generator`
+* `npm install` (will install necessary libraries, e.g. `argparse`)
+* Manually download your ticket sales lists from the retailers supported by this software and convert to CSV if necessary.
+* Run e.g. `generator.js --bpt bpt.csv --bpt-season bpt-season.csv --gs gs.csv --groupon groupon.csv --extra extra.csv [--out list.csv]`
+* Run `generator.js --help` for more information
 
 # Roadmap
 
-## Minor Bugs
+## Work Items
+* Add tests with anonymized names and ticket numbers.
 * Use an actual CSV parser instead of hacking it (support commas within cells and escaped quotes (`"`)).
+
+## Minor Bugs
 * For retailers which provide Full Name (instead of First, Last), improve logic for splitting out first and last names.
 
 ## Quality of Life Improvements
@@ -41,9 +50,9 @@ but because of the differences in formats,
 (handles possibility of similar listings for the same event which involve different offers or packages and are therefore priced differently).
 * Improve the ability to easily add more retailers or input list types.
 * Add ability to specify output table layout (give more semantic meaning to the input formats to allow this).
-
-## Difficult / Low Value / Requires More Work Than Worthwhile
 * General goal: Require less ahead-of-time work on the part of the operator of this program.
+
+## Difficult / Low Value / Probably Not Worthwhile
 * Download the sources directly from the retailers instead of manually downloading.
 
 # Acknowledgements
