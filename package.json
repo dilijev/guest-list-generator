@@ -9,6 +9,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "argparse": "^1.0.9"
+    "argparse": "^1.0.9",
+    "csv": "^1.1.1"
   }
 }
