@@ -9,10 +9,11 @@ const parser = new ArgumentParser({
     description: "Argparse description"
 });
 
-parser.addArgument(['--bpt'], { required: false, help: "Brown Paper Tickets CSV File" });
+parser.addArgument(['--bpt'], { required: false, help: "Brown Paper Tickets (BPT) CSV File" });
+parser.addArgument(['--bpt-season'], { required: false, help: "Brown Paper Tickets (BPT) Season Passes CSV File" });
+parser.addArgument(['--groupon'], { required: false, help: "Groupon CSV File" });
+parser.addArgument(['--groupon-season'], { required: false, help: "Groupon Season Passes CSV File" });
 parser.addArgument(['--gs'], { required: false, help: "GoldStar CSV File" });
-parser.addArgument(['--groupon'], { required: false, help: "GoldStar CSV File" });
-parser.addArgument(['--bpt-season'], { required: false, help: "Brown Paper Tickets Season Passes CSV File" });
 parser.addArgument(['--extra'], { required: false, help: "Extra entries such as reserved tickets" });
 parser.addArgument(['--out'], { required: false, help: "Output File" });
 
@@ -22,6 +23,7 @@ const bptFile = args['bpt'];
 const bptSeasonFile = args['bpt_season'];
 const gsFile = args['gs'];
 const grouponFile = args['groupon'];
+const grouponSeasonFile = args['groupon_season'];
 const extraFile = args['extra'];
 const outFile = args['out'] || 'list.csv'; // default value
 
@@ -31,6 +33,14 @@ if (bptFile) {
     bptFileData = fs.readFileSync(bptFile, 'utf8');
 } else {
     console.log("INFO: No BPT File");
+}
+
+let bptSeasonFileData;
+if (bptSeasonFile) {
+    console.log(`Reading BPT Season File: ${bptSeasonFile}`);
+    bptSeasonFileData = fs.readFileSync(bptSeasonFile, 'utf8');
+} else {
+    console.log("INFO: No BPT Season File");
 }
 
 let gsFileData;
@@ -49,12 +59,12 @@ if (grouponFile) {
     console.log("INFO: No Groupon File");
 }
 
-let bptSeasonFileData;
-if (bptSeasonFile) {
-    console.log(`Reading BPT Season File: ${bptSeasonFile}`);
-    bptSeasonFileData = fs.readFileSync(bptSeasonFile, 'utf8');
+let grouponSeasonFileData;
+if (grouponSeasonFile) {
+    console.log(`Reading Groupon Season File: ${grouponSeasonFile}`);
+    grouponSeasonFileData = fs.readFileSync(grouponSeasonFile, 'utf8');
 } else {
-    console.log("INFO: No BPT Season File");
+    console.log("INFO: No Groupon Season File");
 }
 
 let extraFileData;
@@ -193,14 +203,13 @@ function createGoldStarRow(line) {
     return new Row(last, first, qty, source, ticket);
 }
 
-function createGrouponRow(line) {
+function createGrouponRow(line, source) {
     const fields = line.split(/,/g);
     const name = fields[1];
     const nameParts = name.split(/ /g);
     const last = nameParts[nameParts.length - 1];
     const first = nameParts.slice(0, nameParts.length - 1).join(' ');
     const qty = 1;
-    const source = "Groupon";
     const ticket = fields[0];
     return new Row(last, first, qty, source, ticket);
 }
@@ -231,8 +240,8 @@ function readGoldStarData(data) {
     return data && readData(isGoldStarTicketRow, createGoldStarRow, data);
 }
 
-function readGrouponData(data) {
-    return data && readData(isGrouponTicketRow, createGrouponRow, data);
+function readGrouponData(data, source = "Groupon") {
+    return data && readData(isGrouponTicketRow, createGrouponRow, data, source);
 }
 
 function readExtraData(data) {
@@ -240,11 +249,19 @@ function readExtraData(data) {
 }
 
 const bptRows = readBptData(bptFileData) || [];
-const gsRows = readGoldStarData(gsFileData) || [];
-const grouponRows = readGrouponData(grouponFileData) || [];
 const bptSeasonRows = readBptData(bptSeasonFileData, "BPT Season") || [];
+const grouponRows = readGrouponData(grouponFileData) || [];
+const grouponSeasonRows = readGrouponData(grouponSeasonFileData, "Groupon Season") || [];
+const gsRows = readGoldStarData(gsFileData) || [];
 const extraRows = readExtraData(extraFileData) || [];
-let rows = [].concat(bptRows, gsRows, grouponRows, bptSeasonRows, extraRows);
+let rows = [].concat(
+    bptRows,
+    bptSeasonRows,
+    gsRows,
+    grouponRows,
+    grouponSeasonRows,
+    extraRows
+);
 
 function compressRows(rows) {
     rows = rows.sort((a, b) => a.last.localeCompare(b.last, 'en-US', { 'sensitivity': 'base' }));
