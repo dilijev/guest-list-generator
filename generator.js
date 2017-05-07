@@ -314,6 +314,7 @@ let reportRowsList = [
 ];
 
 reportRows(sourceList, reportRowsList);
+console.log(`Total rows found: ${rows.length}`);
 
 function compressRows(rows) {
     rows = rows.sort((a, b) => a.last.localeCompare(b.last, 'en-US', { 'sensitivity': 'base' }));
@@ -340,7 +341,7 @@ function getOutputData(rows) {
     let out = `Last,First,Qty,Source,Tickets\n`;
     // rows = rows.sort();
     rows = compressRows(rows);
-    console.log(`Rows compressed: total ${rows.length} rows`);
+    console.log(`Rows compressed down to ${rows.length} rows`);
     for (let row of rows) {
         out += row.toString() + "\n";
     }
@@ -349,4 +350,4 @@ function getOutputData(rows) {
 
 const outData = getOutputData(rows);
 fs.writeFileSync(outFile, outData);
-console.log(`Done! Ourput written to ${outFile}`);
+console.log(`Done! Output written to ${outFile}`);
