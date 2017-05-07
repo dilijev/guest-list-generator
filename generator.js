@@ -192,8 +192,13 @@ function isGoldStarTicketRow(line) {
 
 function isGrouponTicketRow(line) {
     const isValidLine = /^LG/.test(line);
+    line = line.replace(/".*?"/, function (match) { return match.replace(/,/g, ""); }); // remove `,` within quotes
     if (isValidLine) {
-        return line.split(/,/g)[5] === "Purchased";
+        const isPurchased = line.split(/,/g)[5] === "Purchased";
+        if (!isPurchased) {
+            console.log(line);
+        }
+        return isPurchased;
     }
     return false;
 }
@@ -222,9 +227,10 @@ function createGoldStarRow(line) {
 }
 
 function createGrouponRow(line, source) {
+    line = line.replace(/".*?"/, function (match) { return match.replace(/,/g, ""); }); // remove `,` within quotes
     const fields = line.split(/,/g);
     // const name = fields[1]; // Owner's Name
-    const name = fields[21].toTitleCase(); // Custom Field: name as appears on ID
+    const name = fields[21].trim().toTitleCase(); // Custom Field: name as appears on ID
     const nameParts = name.split(/ /g);
     const last = nameParts[nameParts.length - 1];
     const first = nameParts.slice(0, nameParts.length - 1).join(' ');
@@ -282,6 +288,33 @@ let rows = [].concat(
     extraRows
 );
 
+function reportRows(sourceList, rowsList) {
+    for (let i = 0; i < sourceList.length; ++i) {
+        if (sourceList[i]) {
+            console.log(`Processed ${sourceList[i]}: found ${rowsList[i].length} rows`);
+        }
+    }
+}
+
+let sourceList = [
+    bptFile,
+    bptSeasonFile,
+    gsFile,
+    grouponFile,
+    grouponSeasonFile,
+    extraFile
+];
+let reportRowsList = [
+    bptRows,
+    bptSeasonRows,
+    gsRows,
+    grouponRows,
+    grouponSeasonRows,
+    extraRows
+];
+
+reportRows(sourceList, reportRowsList);
+
 function compressRows(rows) {
     rows = rows.sort((a, b) => a.last.localeCompare(b.last, 'en-US', { 'sensitivity': 'base' }));
     const outRows = [];
@@ -307,6 +340,7 @@ function getOutputData(rows) {
     let out = `Last,First,Qty,Source,Tickets\n`;
     // rows = rows.sort();
     rows = compressRows(rows);
+    console.log(`Rows compressed: total ${rows.length} rows`);
     for (let row of rows) {
         out += row.toString() + "\n";
     }
@@ -315,3 +349,4 @@ function getOutputData(rows) {
 
 const outData = getOutputData(rows);
 fs.writeFileSync(outFile, outData);
+console.log(`Done! Ourput written to ${outFile}`);
