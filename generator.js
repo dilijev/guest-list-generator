@@ -164,6 +164,20 @@ class Row {
     }
 }
 
+String.prototype.toTitleCase = function() {
+    // Ensure the first character of each part of the name is uppercase, make no assumptions about the rest.
+    // (For example O'Connor and McLeary are properly cased, but making the rest of the name lowercase to handle
+    // intentionally mis-cased names like "bIGGs" would cause correctly-cased names like McLeary to be cased incorrectly).
+
+    // TODO: \w\S* works for now, but for names we probably actually just want something like \w+ (which would capitalize after ',
+    // which is normally not what you'd want for TitleCase) -- needs testing.
+    // Probably change the method name to toProperNameCase instead of toTitleCase
+    // since it's a different application with slightly different rules.
+    // Test case: o'connor -> O'Connor
+
+    return this.replace(/\w\S*/g, function (match) { return match.charAt(0).toUpperCase() + match.substr(1); });
+}
+
 function isBptTicketRow(line) {
     const fields = line.split(/,/g);
     const val = parseInt(fields[0]);
@@ -177,7 +191,11 @@ function isGoldStarTicketRow(line) {
 }
 
 function isGrouponTicketRow(line) {
-    return /^LG/.test(line);
+    const isValidLine = /^LG/.test(line);
+    if (isValidLine) {
+        return line.split(/,/g)[5] === "Purchased";
+    }
+    return false;
 }
 
 function isExtraTicketRow(line) {
@@ -186,8 +204,8 @@ function isExtraTicketRow(line) {
 
 function createBptRow(line, source) {
     const fields = line.split(/,/g);
-    const last = fields[1];
-    const first = fields[2];
+    const last = fields[1].toTitleCase();
+    const first = fields[2].toTitleCase();
     const qty = 1;
     const ticket = fields[0];
     return new Row(last, first, qty, source, ticket);
@@ -195,8 +213,8 @@ function createBptRow(line, source) {
 
 function createGoldStarRow(line) {
     const fields = line.split(/,/g);
-    const last = fields[1];
-    const first = fields[2];
+    const last = fields[1].toTitleCase();
+    const first = fields[2].toTitleCase();
     const qty = parseInt(fields[3]);
     const source = "GoldStar";
     const ticket = fields[7];
@@ -205,7 +223,8 @@ function createGoldStarRow(line) {
 
 function createGrouponRow(line, source) {
     const fields = line.split(/,/g);
-    const name = fields[1];
+    // const name = fields[1]; // Owner's Name
+    const name = fields[21].toTitleCase(); // Custom Field: name as appears on ID
     const nameParts = name.split(/ /g);
     const last = nameParts[nameParts.length - 1];
     const first = nameParts.slice(0, nameParts.length - 1).join(' ');
