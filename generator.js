@@ -194,7 +194,7 @@ function isGrouponTicketRow(line) {
     const isValidLine = /^LG/.test(line);
     line = line.replace(/".*?"/, function (match) { return match.replace(/,/g, ""); }); // remove `,` within quotes
     if (isValidLine) {
-        const isPurchased = line.split(/,/g)[5] === "Purchased";
+        const isPurchased = line.indexOf("Purchased") >= 0;
         if (!isPurchased) {
             console.log(line);
         }
@@ -229,8 +229,8 @@ function createGoldStarRow(line) {
 function createGrouponRow(line, source) {
     line = line.replace(/".*?"/, function (match) { return match.replace(/,/g, ""); }); // remove `,` within quotes
     const fields = line.split(/,/g);
-    // const name = fields[1]; // Owner's Name
-    const name = fields[21].trim().toTitleCase(); // Custom Field: name as appears on ID
+    const name = fields[1].trim().toTitleCase(); // Owner's Name
+    // const name = fields[21].trim().toTitleCase(); // Custom Field: name as appears on ID
     const nameParts = name.split(/ /g);
     const last = nameParts[nameParts.length - 1];
     const first = nameParts.slice(0, nameParts.length - 1).join(' ');
