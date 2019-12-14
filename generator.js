@@ -211,7 +211,15 @@ function createBptRow(line, source) {
     const fields = line.split(/,/g);
     const last = fields[1].toTitleCase();
     const first = fields[2].toTitleCase();
-    const qty = 1;
+    const ticketType = fields[3];
+    let qty = 1;
+    if (ticketType.includes('Family of 4')) {
+        qty = 4;
+        source += ' (Family of 4)'
+    } else if (ticketType.includes('Family of 5')) {
+        qty = 5;
+        source += ' (Family of 5)'
+    }
     const ticket = fields[0];
     return new Row(last, first, qty, source, ticket);
 }
