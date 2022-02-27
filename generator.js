@@ -3,6 +3,7 @@
 
 'use strict';
 const fs = require('fs');
+const csv = require('csv');
 const ArgumentParser = require('argparse').ArgumentParser;
 
 const parser = new ArgumentParser({
@@ -14,6 +15,8 @@ parser.addArgument(['--bpt-season'], { required: false, help: "Brown Paper Ticke
 parser.addArgument(['--groupon'], { required: false, help: "Groupon CSV File" });
 parser.addArgument(['--groupon-season'], { required: false, help: "Groupon Season Passes CSV File" });
 parser.addArgument(['--gs'], { required: false, help: "GoldStar CSV File" });
+parser.addArgument(['--ts'], { required: false, help: "TicketStripe CSV File" });
+parser.addArgument(['--ts-season'], { required: false, help: "TicketStripe Season Passes CSV File" });
 parser.addArgument(['--extra'], { required: false, help: "Extra entries such as reserved tickets" });
 parser.addArgument(['--out'], { required: false, help: "Output File" });
 
@@ -21,9 +24,11 @@ const args = parser.parseArgs();
 
 const bptFile = args['bpt'];
 const bptSeasonFile = args['bpt_season'];
-const gsFile = args['gs'];
 const grouponFile = args['groupon'];
 const grouponSeasonFile = args['groupon_season'];
+const gsFile = args['gs'];
+const ticketStripeFile = args['ts'];
+const ticketStripeSeasonFile = args['ts_season'];
 const extraFile = args['extra'];
 const outFile = args['out'] || 'list.csv'; // default value
 
@@ -65,6 +70,22 @@ if (grouponSeasonFile) {
     grouponSeasonFileData = fs.readFileSync(grouponSeasonFile, 'utf8');
 } else {
     console.log("INFO: No Groupon Season File");
+}
+
+let ticketStripeFileData;
+if (ticketStripeFile) {
+    console.log(`Reading TicketStripe File: ${ticketStripeFile}`);
+    ticketStripeFileData = fs.readFileSync(ticketStripeFile, 'utf8');
+} else {
+    console.log("INFO: No TicketStripe File");
+}
+
+let ticketStripeSeasonFileData;
+if (ticketStripeSeasonFile) {
+    console.log(`Reading TicketStripe File: ${ticketStripeSeasonFile}`);
+    ticketStripeSeasonFileData = fs.readFileSync(ticketStripeSeasonFile, 'utf8');
+} else {
+    console.log("INFO: No TicketStripe Season File");
 }
 
 let extraFileData;
@@ -203,6 +224,17 @@ function isGrouponTicketRow(line) {
     return false;
 }
 
+function isTicketStripeTicketRow(line) {
+    const fields = line.split(/,/g);
+    if (fields.length < 5) {
+        return false;
+    }
+    const ticketField = fields[4];
+    const ticketNumber = ticketField.replace(/"null - (\d+)"/g, "$1");
+    const val = parseInt(ticketNumber);
+    return !Number.isNaN(val);
+}
+
 function isExtraTicketRow(line) {
     return /,/.test(line);
 }
@@ -224,12 +256,11 @@ function createBptRow(line, source) {
     return new Row(last, first, qty, source, ticket);
 }
 
-function createGoldStarRow(line) {
+function createGoldStarRow(line, source) {
     const fields = line.split(/,/g);
     const last = fields[1].toTitleCase();
     const first = fields[2].toTitleCase();
     const qty = parseInt(fields[3]);
-    const source = "GoldStar";
     const ticket = fields[7];
     return new Row(last, first, qty, source, ticket);
 }
@@ -244,6 +275,22 @@ function createGrouponRow(line, source) {
     const first = nameParts.slice(0, nameParts.length - 1).join(' ');
     const qty = 1;
     const ticket = fields[0];
+    return new Row(last, first, qty, source, ticket);
+}
+
+function createTicketStripeRow(line, source) {
+    line = line.replace(/".*?"/, function (match) { return match.replace(/,/g, ""); }); // remove `,` within quotes
+    const fields = line.split(/,/g);
+    const quotes_re = /^"(.*)"/g;
+    for (let x in fields) {
+        let field = fields[x];
+        fields[x] = field.replace(quotes_re, '$1');
+    }
+    const last = fields[0];
+    const first = fields[1];
+    const qty = parseInt(fields[2].replace(/^(\d+)\s.*/, '$1'));
+    const ticketField = fields[4];
+    const ticket = parseInt(ticketField.replace(/null - (\d+)/g, '$1'));
     return new Row(last, first, qty, source, ticket);
 }
 
@@ -269,12 +316,16 @@ function readBptData(data, source = "BPT") {
     return data && readData(isBptTicketRow, createBptRow, data, source);
 }
 
-function readGoldStarData(data) {
-    return data && readData(isGoldStarTicketRow, createGoldStarRow, data);
+function readGoldStarData(data, source = "GoldStar") {
+    return data && readData(isGoldStarTicketRow, createGoldStarRow, data, source);
 }
 
 function readGrouponData(data, source = "Groupon") {
     return data && readData(isGrouponTicketRow, createGrouponRow, data, source);
+}
+
+function readTicketStripeData(data, source = "TicketStripe") {
+    return data && readData(isTicketStripeTicketRow, createTicketStripeRow, data, source);
 }
 
 function readExtraData(data) {
@@ -286,13 +337,17 @@ const bptSeasonRows = readBptData(bptSeasonFileData, "BPT Season") || [];
 const grouponRows = readGrouponData(grouponFileData) || [];
 const grouponSeasonRows = readGrouponData(grouponSeasonFileData, "Groupon Season") || [];
 const gsRows = readGoldStarData(gsFileData) || [];
+const ticketStripeRows = readTicketStripeData(ticketStripeFileData) || [];
+const ticketStripeSeasonRows = readTicketStripeData(ticketStripeSeasonFileData, "TicketStripe Season") || [];
 const extraRows = readExtraData(extraFileData) || [];
 let rows = [].concat(
     bptRows,
     bptSeasonRows,
-    gsRows,
     grouponRows,
     grouponSeasonRows,
+    ticketStripeRows,
+    ticketStripeSeasonRows,
+    gsRows,
     extraRows
 );
 
@@ -310,6 +365,8 @@ let sourceList = [
     gsFile,
     grouponFile,
     grouponSeasonFile,
+    ticketStripeFile,
+    ticketStripeSeasonFile,
     extraFile
 ];
 let reportRowsList = [
@@ -318,6 +375,8 @@ let reportRowsList = [
     gsRows,
     grouponRows,
     grouponSeasonRows,
+    ticketStripeRows,
+    ticketStripeSeasonRows,
     extraRows
 ];
 
