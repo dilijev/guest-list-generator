@@ -177,6 +177,7 @@ class Row {
             //     }
             // }
         }
+        out = "'" + out;  // display in spreadsheet as literal
         return out;
     }
 
@@ -224,14 +225,29 @@ function isGrouponTicketRow(line) {
     return false;
 }
 
+function parseTicketStripeTicketValue(ticketField) {
+    console.log(ticketField);
+    let ticketNumber = "";
+    if (ticketField.includes('null')) {
+        ticketNumber = ticketField.replace(/"?null - (\d+)"?/g, "$1");
+        console.log(ticketNumber)
+    } else {
+        ticketNumber = ticketField.replace(/(\d+)-(\d+)/g, "$1$2");
+        console.log(ticketNumber)
+    }
+    const val = parseInt(ticketNumber);
+    console.log(val);
+    console.log();
+    return val;
+}
+
 function isTicketStripeTicketRow(line) {
     const fields = line.split(/,/g);
     if (fields.length < 5) {
         return false;
     }
     const ticketField = fields[4];
-    const ticketNumber = ticketField.replace(/"null - (\d+)"/g, "$1");
-    const val = parseInt(ticketNumber);
+    const val = parseTicketStripeTicketValue(ticketField);
     return !Number.isNaN(val);
 }
 
@@ -290,7 +306,7 @@ function createTicketStripeRow(line, source) {
     const first = fields[1];
     const qty = parseInt(fields[2].replace(/^(\d+)\s.*/, '$1'));
     const ticketField = fields[4];
-    const ticket = parseInt(ticketField.replace(/null - (\d+)/g, '$1'));
+    const ticket = parseTicketStripeTicketValue(ticketField);
     return new Row(last, first, qty, source, ticket);
 }
 
